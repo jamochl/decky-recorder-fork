@@ -178,25 +178,24 @@ class Plugin:
 
             logger.info("Making audio pipeline")
             # Creates audio pipeline
-            audio_device_output = subprocess.getoutput("pactl get-default-sink")
-            mic_input = subprocess.getoutput("pactl get-default-source")
+            audio_device_output = subprocess.getoutput("pactl get-default-sink").strip()
+            mic_input = subprocess.getoutput("pactl get-default-source").strip()
             # expected output: alsa_output.pci-0000_04_00.5-platform-acp5x_mach.0.HiFi__hw_acp5x_1__sink when using internal speaker
             # bluez_output.20_74_CF_F1_C0_1E.1 when using bluetooth
             logger.info(f"Audio device output {audio_device_output}")
 
             monitor = ".monitor"
-            for line in audio_device_output.split("\n"):
-                if "alsa_output" in line or "bluez_" in line:
-                    monitor = line + ".monitor"
-                    break
+            if "alsa_output" in audio_device_output or "bluez_" in audio_device_output:
+                monitor = audio_device_output + ".monitor"
 
-            deckyRecordingSinkExists = subprocess.run("pactl list sinks | grep 'Decky-Recording-Sink'").returncode == 0
+            deckyRecordingSinkExists = subprocess.run("pactl list sinks | grep 'Decky-Recording-Sink'", shell=True).returncode == 0
 
             if not deckyRecordingSinkExists:
                 subprocess.run("pactl load-module module-null-sink sink_name=Decky-Recording-Sink", shell=True)
-                subprocess.run(f"pactl load-module module-loopback source={monitor} sink=Decky-Recording-Sink", shell=True)
-                subprocess.run(f"pactl load-module module-loopback sink=Decky-Recording-Sink", shell=True)
-                subprocess.run(f"pactl load-module module-echo-cancel use_master_format=1 source_master={mic_input} source_name=Echo-Cancelled-Mic aec_method='webrtc'", shell=True)
+
+                subprocess.run(f"pactl load-module module-echo-cancel use_master_format=1 source_master={mic_input} sink_master={audio_device_output} source_name=Echo-Cancelled-Mic sink_name=Echo-Cancelled-Speaker aec_method='webrtc'", shell=True)
+
+                subprocess.run(f"pactl load-module module-loopback source=Echo-Cancelled-Speaker.monitor sink=Decky-Recording-Sink", shell=True)
                 subprocess.run(f"pactl load-module module-loopback source=Echo-Cancelled-Mic sink=Decky-Recording-Sink", shell=True)
 
             cmd = (
