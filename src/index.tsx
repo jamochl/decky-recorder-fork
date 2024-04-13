@@ -136,9 +136,9 @@ const DeckyRecorder: VFC<{ serverAPI: ServerAPI, logic: DeckyRecorderLogic }> = 
 
 	const [micGain, setMicGain] = useState<number>(13);
 
-	const [micSource, setMicSource] = useState<DropdownOption>({data: "@DEFAULT_SOURCE@", label: "@DEFAULT_SOURCE@"});
+	const [micSource, setMicSource] = useState<DropdownOption>({data: "alsa_input.pci-0000_04_00.5-platform-acp5x_mach.0.HiFi__hw_acp5x_0__source", label: "Default Mic"});
 
-	const [micSourcesList, setMicSourcesList] = useState<DropdownOption[]>([{data: "@DEFAULT_SOURCE@", label: "@DEFAULT_SOURCE@"}]);
+	const [micSourcesList, setMicSourcesList] = useState<DropdownOption[]>([{data: "alsa_input.pci-0000_04_00.5-platform-acp5x_mach.0.HiFi__hw_acp5x_0__source", label: "Default Mic"}]);
 
 	// const audioBitrateOption128 = { data: "128", label: "128 Kbps" } as SingleDropdownOption
 	// const audioBitrateOption192 = { data: "192", label: "192 Kbps" } as SingleDropdownOption
