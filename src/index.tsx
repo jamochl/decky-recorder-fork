@@ -141,9 +141,9 @@ const DeckyRecorder: VFC<{ serverAPI: ServerAPI, logic: DeckyRecorderLogic }> = 
 	const [micGain, setMicGain] = useState<number>(13);
 	const [noiseReductionPercent, setNoiseReductionPercent] = useState<number>(50);
 
-	const [micSource, setMicSource] = useState<DropdownOption>({data: "@DEFAULT_SOURCE@", label: "Default Mic"});
+	const [micSource, setMicSource] = useState<DropdownOption>({data: "NA", label: "Default Mic"});
 
-	const [micSourcesList, setMicSourcesList] = useState<DropdownOption[]>([{data: "@DEFAULT_SOURCE@", label: "Default Mic"}]);
+	const [micSourcesList, setMicSourcesList] = useState<DropdownOption[]>([{data: "NA", label: "Default Mic"}]);
 
 	// const audioBitrateOption128 = { data: "128", label: "128 Kbps" } as SingleDropdownOption
 	// const audioBitrateOption192 = { data: "192", label: "192 Kbps" } as SingleDropdownOption

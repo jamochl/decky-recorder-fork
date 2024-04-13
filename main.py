@@ -493,6 +493,9 @@ class Plugin:
         self._watchdog_task = loop.create_task(Plugin.watchdog(self))
         await Plugin.loadConfig(self)
         if await Plugin.is_rolling(self):
+            # Prevent bug where pulseaudio is not yet ready on fresh restart
+            logger.info("Waiting 5 seconds before starting Decky Recorder")
+            await asyncio.sleep(5)
             await Plugin.start_capturing(self)
         return
 
