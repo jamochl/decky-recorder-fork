@@ -384,11 +384,12 @@ class Plugin:
         return self._noiseReductionPercent
 
     async def update_noise_reduction_percent(self, new_percent: int):
+        logger.info(f"Updating noise reduction percent {new_percent}")
         self._noiseReductionPercent = int(new_percent)
         if await Plugin.is_capturing(self):
             if await Plugin.is_mic_enabled(self):
-                Plugin.detach_mic(self)
-                Plugin.attach_mic(self)
+                await Plugin.detach_mic(self)
+                await Plugin.attach_mic(self)
         await Plugin.saveConfig(self)
 
     async def get_mic_source(self):
