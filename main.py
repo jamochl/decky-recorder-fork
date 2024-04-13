@@ -86,6 +86,7 @@ class Plugin:
     _rolling: bool = False
     _micEnabled: bool = False
     _micGain: float = 13.0
+    _noiseReductionPercent: int = 50
     _micSource: float = "NA"
     _deckySinkModuleName: str = "Decky-Recording-Sink"
     _echoCancelledAudioName: str = "Echo-Cancelled-Audio"
@@ -333,7 +334,7 @@ class Plugin:
 
         get_cmd_output(f"pactl load-module module-null-sink sink_name={self._echoCancelledMicName} rate=48000")
 
-        get_cmd_output(f"pactl load-module module-ladspa-sink sink_name={self._echoCancelledMicName}_raw_in sink_master={self._echoCancelledMicName} label=noise_suppressor_mono plugin={denoise_extracted_file_path} control=50,20,0,0,0")
+        get_cmd_output(f"pactl load-module module-ladspa-sink sink_name={self._echoCancelledMicName}_raw_in sink_master={self._echoCancelledMicName} label=noise_suppressor_mono plugin={denoise_extracted_file_path} control={self._noiseReductionPercent},20,0,0,0")
 
         if self._micSource == "NA":
             self._micSource = await Plugin.get_default_mic(self)
@@ -377,6 +378,17 @@ class Plugin:
         if await Plugin.is_capturing(self):
             if await Plugin.is_mic_attached(self):
                 get_cmd_output(f"pactl set-source-volume Echo-Cancelled-Mic {self._micGain}db")
+        await Plugin.saveConfig(self)
+
+    async def get_noise_reduction_percent(self):
+        return self._noiseReductionPercent
+
+    async def update_noise_reduction_percent(self, new_percent: int):
+        self._noiseReductionPercent = int(new_percent)
+        if await Plugin.is_capturing(self):
+            if await Plugin.is_mic_enabled(self):
+                Plugin.detach_mic(self)
+                Plugin.attach_mic(self)
         await Plugin.saveConfig(self)
 
     async def get_mic_source(self):
@@ -458,6 +470,7 @@ class Plugin:
         self._rolling = self._settings.getSetting("rolling", False)
         self._micEnabled = self._settings.getSetting("mic_enabled", False)
         self._micGain = self._settings.getSetting("mic_gain", 13.0)
+        self._noiseReductionPercent = self._settings.getSetting("noise_reduction_percent", 50.0)
 
         # Need this for initialization only honestly
         await Plugin.saveConfig(self)
@@ -470,6 +483,8 @@ class Plugin:
         self._settings.setSetting("rolling", self._rolling)
         self._settings.setSetting("mic_enabled", self._micEnabled)
         self._settings.setSetting("mic_gain", self._micGain)
+        self._settings.setSetting("noise_reduction_percent", self._noiseReductionPercent )
+
         return
 
     async def _main(self):
