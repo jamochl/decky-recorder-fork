@@ -293,7 +293,7 @@ class Plugin:
         unload_pa_modules(f"{self._deckySinkModuleName}")
 
     async def get_default_mic(self):
-        return get_cmd_output("pactl get-default-sink")
+        return get_cmd_output("pactl get-default-source")
 
     async def is_mic_enabled(self):
         logger.info(f"Is mic enabled? {self._micEnabled}")
