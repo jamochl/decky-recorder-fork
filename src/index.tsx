@@ -169,8 +169,13 @@ const DeckyRecorder: VFC<{ serverAPI: ServerAPI, logic: DeckyRecorderLogic }> = 
 		const getMicGain = await serverAPI.callPluginMethod('get_mic_gain', {});
 		setMicGain(getMicGain.result as number);
 
-		const getMicSource = await serverAPI.callPluginMethod('get_default_mic', {});
-		setMicSource({data: getMicSource.result as string, label: "Default Mic"})
+		let getMicSource = await serverAPI.callPluginMethod('get_mic_source', {});
+		if (getMicSource.result as string == "NA") {
+			getMicSource = await serverAPI.callPluginMethod('get_default_mic', {});
+			setMicSource({data: getMicSource.result as string, label: "Default Mic"})
+		} else {
+			setMicSource({data: getMicSource.result as string, label: getMicSource.result})
+		}
 
 		// const getModeResponse = await serverAPI.callPluginMethod('get_current_mode', {});
 		// setMode(getModeResponse.result as string);

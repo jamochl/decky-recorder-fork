@@ -379,6 +379,9 @@ class Plugin:
                 get_cmd_output(f"pactl set-source-volume Echo-Cancelled-Mic {self._micGain}db")
         await Plugin.saveConfig(self)
 
+    async def get_mic_source(self):
+        return self._micSource
+
     async def get_mic_sources(self):
         logger.info(f"Getting available mic sources")
         raw_sources = get_cmd_output("pactl list short sources | awk '{print $2}'").split("\n")
