@@ -304,12 +304,37 @@ class Plugin:
     async def attach_mic(self):
         logger.info(f"Attaching Microphone {self._echoCancelledMicName}")
 
-        # attached echo cancelled mic
-        get_cmd_output(f"pactl load-module module-echo-cancel use_master_format=1 source_master=@DEFAULT_SOURCE@ sink_master={self._micSource} source_name={self._echoCancelledMicName} sink_name={self._echoCancelledAudioName} aec_method='webrtc' aec_args='analog_gain_control=0 digital_gain_control=1'")
+        # Download gpl-3 binary for superior denoising (cannot include in this repo as gpl)
 
-        get_cmd_output(f"pactl set-source-volume Echo-Cancelled-Mic {self._micGain}db")
-        get_cmd_output(f"pactl load-module module-loopback source={self._echoCancelledMicName} sink={self._deckySinkModuleName}")
-        get_cmd_output(f"pactl load-module module-loopback source={self._echoCancelledAudioName}.monitor sink={self._deckySinkModuleName}")
+        # Define the URLs and file paths
+        denoise_version = "1.03"
+        denoise_zip_url = f"https://github.com/werman/noise-suppression-for-voice/releases/download/v{denoise_version}/linux-rnnoise.zip"
+        denoise_zip_file_path = "/home/deck/homebrew/data/decky-recorder/linux-rnnoise.zip"
+        denoise_extracted_file_path = f"/home/deck/homebrew/data/decky-recorder/librnnoise_ladspa.{denoise_version}.so"
+
+        # Check if the file already exists
+        logger.info("Checking denoiser binary exists")
+        if not os.path.exists(denoise_extracted_file_path):
+            # Download the zip file
+            logger.info(f"Does not exist, downloading binary from {denoise_zip_url}")
+            # Download the zip file
+            get_cmd_output(f"wget {denoise_zip_url} -O {denoise_zip_file_path}")
+            # Extract the specific file from the zip
+            get_cmd_output(f"unzip -j {denoise_zip_file_path} 'linux-rnnoise/ladspa/librnnoise_ladspa.so' -d /tmp")
+            get_cmd_output(f"mv /tmp/librnnoise_ladspa.so {denoise_extracted_file_path}")
+            get_cmd_output(f"rm /tmp/librnnoise_ladspa.so {denoise_zip_file_path}")
+
+            logger.info(f"Binary extracted to {denoise_extracted_file_path}")
+
+        # attached echo cancelled mic
+
+        get_cmd_output(f"pactl load-module module-null-sink sink_name={self._echoCancelledMicName} rate=48000")
+        get_cmd_output(f"pactl load-module module-ladspa-sink sink_name={self._echoCancelledMicName}_raw_in sink_master={self._echoCancelledMicName} label=noise_suppressor_mono plugin=/home/deck/homebrew/data/decky-recorder/librnnoise_ladspa.{denoise_version}.so control=50,20,0,0,0")
+        get_cmd_output(f"pactl load-module module-loopback source={self._micSource} sink={self._echoCancelledMicName}_raw_in channels=1 source_dont_move=true sink_dont_move=true")
+
+        get_cmd_output(f"pactl set-source-volume {self._echoCancelledMicName}.monitor {self._micGain}db")
+
+        get_cmd_output(f"pactl load-module module-loopback source={self._echoCancelledMicName}.monitor sink={self._deckySinkModuleName}")
 
     async def detach_mic(self):
         logger.info(f"Detaching Microphone {self._echoCancelledMicName}")
