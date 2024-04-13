@@ -333,7 +333,7 @@ class Plugin:
 
         get_cmd_output(f"pactl load-module module-null-sink sink_name={self._echoCancelledMicName} rate=48000")
 
-        get_cmd_output(f"pactl load-module module-ladspa-sink sink_name={self._echoCancelledMicName}_raw_in sink_master={self._echoCancelledMicName} label=noise_suppressor_mono plugin=/home/deck/homebrew/data/decky-recorder/librnnoise_ladspa.{denoise_version}.so control=50,20,0,0,0")
+        get_cmd_output(f"pactl load-module module-ladspa-sink sink_name={self._echoCancelledMicName}_raw_in sink_master={self._echoCancelledMicName} label=noise_suppressor_mono plugin={denoise_extracted_file_path} control=50,20,0,0,0")
 
         if self._micSource == "NA":
             self._micSource = await Plugin.get_default_mic(self)
